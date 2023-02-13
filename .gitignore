@@ -1,0 +1,5 @@
+.DS_Store
+./client/node_modules
+./client/.idea
+./server/__pycache__
+./server/.idea

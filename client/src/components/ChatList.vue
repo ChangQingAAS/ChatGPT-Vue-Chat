@@ -59,6 +59,7 @@ export default {
     name: 'ChatList',
     data () {
         return {
+            chatbot_id: '',
             showSelBox: 0, // 0隐藏 1显示表情 2显示其他
             selFace: '表情',
             selOther: '其他功能',
@@ -210,17 +211,44 @@ export default {
             //     })
             // }, 100)
 
+            // // 发起请求
+            // // 处理调用的函数
+            // const param = {
+            //     'question': this.content
+            // }
+            // const path = 'http://localhost:5000/get_bing_answer'
+            // axios.post(path, param)
+            //     .then((res) => {
+            //         _this.records.push({
+            //             type: 2,
+            //             time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
+            //             name: 'BingChatGPT',
+            //             content: res.data['answer']
+            //         })
+            //     })
+            //     .catch((error) => {
+            //         _this.records.push({
+            //             type: 2,
+            //             time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
+            //             name: 'BingChatGPT',
+            //             content: '没有收到回复，Error: ' + error
+            //         })
+            //     })
+            // // 发起请求
+
+            // 发起请求
             // 处理调用的函数
             const param = {
-                'question': this.content
+                'uid': this.chatbot_id,
+                'text': this.content,
             }
-            const path = 'http://localhost:5000/answer'
+            const path = 'http://localhost:5000/get_chatbots_answer'
             axios.post(path, param)
                 .then((res) => {
                     _this.records.push({
                         type: 2,
                         time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
-                        name: 'BingChatGPT',
+                        name: 'ChatGPT',
                         content: res.data['answer']
                     })
                 })
@@ -228,10 +256,11 @@ export default {
                     _this.records.push({
                         type: 2,
                         time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
-                        name: 'BingChatGPT',
+                        name: 'ChatGPT',
                         content: '没有收到回复，Error: ' + error
                     })
                 })
+            // 发起请求
 
             this.content = ''
 
@@ -288,11 +317,22 @@ export default {
 
                 this.$refs.loadmore.onTopLoaded(id)
             }, 1500)
+        },
+        getChatbotID () {
+            const path = 'http://localhost:5000/get_bot'
+            axios.get(path)
+                .then((res) => {
+                    this.chatbot_id = res.data
+                })
+                .catch((error) => {
+                    console.log('获取chatUUID错误: ' + error)
+                })
         }
     },
     mounted: function () {
         this.scrollToBottom()
         this.focusTxtContent()
+        this.getChatbotID()
     }
     // updated:function(){
     //     this.scrollToBottom();
