@@ -34,6 +34,13 @@ cd server
 python3 app.py
 ```
 
+## Noting:
+- At the beginning of this project, I did a combination of BingChatGPT backend and a Vue frontend.
+- Later, BingChatGPT did not open the API interface for use.
+- Then, I changed the back-end code to an API interface based on OPENAI GPT3 (because ChatGPT is not open anymore), but there is also a problem: too many people use this API, which may cause the connection to fail.
+
+You can modify the redundant code of server/app.py and src/components/ChatList.vue/sendMsg()
+
 ## TODO:
 
 - I want to make more chat interfaces, users can choose who to talk to in the left sidebar, such as a beautiful girl, a
