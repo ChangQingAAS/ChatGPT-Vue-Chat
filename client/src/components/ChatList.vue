@@ -211,6 +211,33 @@ export default {
             //     })
             // }, 100)
 
+            // 发起请求
+            // 处理调用的函数
+            const param = {
+                'question': this.content
+            }
+            const host=window.location.hostname
+            const protocol=window.location.protocol
+            const backendPort="5000"
+            const path = protocol + '//' + host + ":" + backendPort + "/get_bing_answer"
+            axios.post(path, param)
+                .then((res) => {
+                    _this.records.push({
+                        type: 2,
+                        time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
+                        name: 'BingChatGPT',
+                        content: res.data['answer']
+                    })
+                })
+                .catch((error) => {
+                    _this.records.push({
+                        type: 2,
+                        time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
+                        name: 'BingChatGPT',
+                        content: '没有收到回复，Error: ' + error
+                    })
+                })
+            // 发起请求
             // // 发起请求
             // // 处理调用的函数
             // const param = {
@@ -236,31 +263,34 @@ export default {
             //     })
             // // 发起请求
 
-            // 发起请求
-            // 处理调用的函数
-            const param = {
-                'uid': this.chatbot_id,
-                'text': this.content,
-            }
-            const path = 'http://localhost:5000/get_chatbots_answer'
-            axios.post(path, param)
-                .then((res) => {
-                    _this.records.push({
-                        type: 2,
-                        time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
-                        name: 'ChatGPT',
-                        content: res.data['answer']
-                    })
-                })
-                .catch((error) => {
-                    _this.records.push({
-                        type: 2,
-                        time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
-                        name: 'ChatGPT',
-                        content: '没有收到回复，Error: ' + error
-                    })
-                })
-            // 发起请求
+            // // 发起请求
+            // // 处理调用的函数
+            // const param = {
+            //     'uid': this.chatbot_id,
+            //     'text': this.content,
+            // }
+            // const host=window.location.hostname
+            // const protocol=window.location.protocol
+            // const backendPort="5000"
+            // const path = protocol + '//' + host + ":" + backendPort + "/get_chatbots_answer"
+            // axios.post(path, param)
+            //     .then((res) => {
+            //         _this.records.push({
+            //             type: 2,
+            //             time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
+            //             name: 'ChatGPT',
+            //             content: res.data['answer']
+            //         })
+            //     })
+            //     .catch((error) => {
+            //         _this.records.push({
+            //             type: 2,
+            //             time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
+            //             name: 'ChatGPT',
+            //             content: '没有收到回复，Error: ' + error
+            //         })
+            //     })
+            // // 发起请求
 
             this.content = ''
 
@@ -319,7 +349,10 @@ export default {
             }, 1500)
         },
         getChatbotID () {
-            const path = 'http://localhost:5000/get_bot'
+            const host=window.location.hostname
+            const protocol=window.location.protocol
+            const backendPort="5000"
+            const path = protocol + '//' + host + ":" + backendPort+"/get_bot"
             axios.get(path)
                 .then((res) => {
                     this.chatbot_id = res.data
