@@ -1,5 +1,15 @@
 # BingChatGPT-VUE-Chat
 
+## News
+OPENAI released the chatGPT interface on 2023.03.02 (just today), so I put this attempt without using chatgpt into the v1.0 branch, and I am going to give up maintaining this branch.
+
+I will put the latest code into the main branch, hope you like it
+
+If you have better suggestions, please issue
+
+
+
+## Description
 A simple chat interface with BingChatGPT on the left and users on the right. When the 'Send' button is clicked, the
 prompt is sent to the backend API for processing.
 
