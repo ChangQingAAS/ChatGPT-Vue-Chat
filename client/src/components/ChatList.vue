@@ -21,7 +21,7 @@
         </section>
 
         <section class="foot">
-            <mt-field id="txtContent" v-model="content" class="con" placeholder="请输入消息"></mt-field>
+            <mt-field id="txtContent" v-model="content" class="con" placeholder="Please enter your prompt"></mt-field>
             <span class="btn btn-send" v-on:click="sendMsg">Send</span>
         </section>
     </div>
@@ -46,7 +46,7 @@ export default {
             const _this = this
 
             if (this.content == '') {
-                Toast('请输入消息')
+                Toast('Please enter your prompt')
                 return
             }
 
