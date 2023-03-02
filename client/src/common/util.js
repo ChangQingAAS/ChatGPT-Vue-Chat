@@ -3,7 +3,9 @@ var DEFAULT_PATTERN = 'yyyy-MM-dd'
 
 function padding (s, len) {
     len = len - (s + '').length
-    for (var i = 0; i < len; i++) { s = '0' + s }
+    for (let i = 0; i < len; i++) {
+        s = '0' + s
+    }
     return s
 }
 
@@ -74,7 +76,5 @@ export default {
             }
             return null
         }
-
     }
-
 }

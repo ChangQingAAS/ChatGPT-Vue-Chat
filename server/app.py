@@ -1,98 +1,104 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request
 from flask_cors import CORS
-import asyncio
-from EdgechatGPT import Chatbot as BingChatBot
 from loguru import logger
-import uuid
-from chatGPT import ChatBot
-from pydantic import BaseModel
-from conf import conf_reader
+import openai
 
-# configuration
+# flask configuration--------------------------------------------------------------
 DEBUG = True
 
 # instantiate the app
 app = Flask(__name__)
-# 加载配置变量
+# Load configuration variables
 app.config.from_object(__name__)
 
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
+# flask configuration--------------------------------------------------------------
 
 
-def getAnswer(uid, text):
-    logger.info(f"ASK: {text}")
-    try:
-        bot = chatBots[uid]
-    except Exception as e:
-        return "校验失败，请刷新页面后重试. Error: " + e
-    response = bot.ask_stream(text)
-    return response
+# openai chatGPT configuration--------------------------------------------------------------
+openai.api_key = "https://platform.openai.com/account/api-keys"
+init_prompt = ""  # it can make chatGPT be some different role, for example: beautiful girl.
+
+messages = []  # By global `messages`, we can use it easily
 
 
-@app.route('/get_bot', methods=['GET'])
-def get_bot():
-    uid = str(uuid.uuid1())
-    bot = ChatBot(api_key=conf_reader())
-    chatBots[uid] = bot
-    return uid
+# openai chatGPT configuration--------------------------------------------------------------
 
 
-@app.route('/get_chatbots_answer', methods=['GET', 'POST'])
-def get_chatbots_answer():
-    # 传入参数需要uid,text
+def chat_init():
+    """
+    1.input init prompt to model
+    2.add the two message into the complete messages for chatting
+
+    during this, log something for DEBUG in the future
+    """
+    completion = openai.ChatCompletion.create(
+        # model name
+        # choose other model from: https://platform.openai.com/docs/models/overview
+        model="gpt-3.5-turbo",  # or "gpt-3.5-turbo-0301"
+        # chat history, make the model aware of the current context
+        messages=[{
+            "role": "user",
+            "content": init_prompt
+        }],
+        # The parameters below maybe could not be used
+        # Control the randomness of the result, 0.0 means the result is fixed, and the randomness can be set to 0.9.
+        # temperate=0.5,
+
+        # The maximum number of words returned (including questions and answers), usually Chinese characters occupy
+        # two tokens. Assuming it is set to 100, if there are 40 Chinese characters in the prompt question,
+        # then the returned result will include at most 10 Chinese characters. The maximum number of tokens allowed
+        # by the ChatGPT API is 4096, that is, the max_tokens maximum setting is 4096 minus the number of tokens in
+        # question.
+        # max_tokens=1000,
+
+        # top_p=1,
+        # frequency_penalty=0,
+        # presence_penalty=0
+    )
+    logger.info("user: " + init_prompt)
+
+    message = completion["choices"][0]["message"]
+    messages.append(message)
+    logger.info("chatGPT: " + message['content'])
+
+
+def get_answer_from_model(prompt):
+    """
+    1.prepare the input message
+    2.input the complete messages into model, to get the answer
+
+    during this, log something for DEBUG in the future
+    """
+    messages.append({
+        "role": "user",
+        "content": prompt
+    })
+    logger.info("user: " + prompt)
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
+    )
+
+    message = completion["choices"][0]["message"]
+    messages.append(message)
+    logger.info("chatGPT: " + message['content'])
+
+    return message['content']
+
+
+@app.route('/get_answer', methods=['GET', 'POST'])
+def get_answer():
+    # 传入参数需要text
     post_data = request.get_json()
     logger.info("post_data: " + str(post_data))
-    res = getAnswer(post_data["uid"], post_data["text"])
-    response = ""
-    for word in res:
-        response += word
-    logger.info("response: " + response)
-    result = response.replace("<|im_end|>", "").strip()
-    logger.info(f"ANSWER: {result}")
+    prompt = post_data["prompt"]
+
     return {
         'status': 'success',
-        "answer": result
-    }
-
-
-# sanity check route
-@app.route('/ping', methods=['GET'])
-def ping_pong():
-    return jsonify('pong!')
-
-
-async def handle(prompt):
-    if prompt == "!exit":
-        return "聊天结束"
-    elif prompt == "!help":
-        logger.info("""
-        !help - Show this help message
-        !exit - Exit the program
-        !reset - Reset the conversation
-        """)
-    elif prompt == "!reset":
-        await bot.reset()
-
-    result = (await bot.ask(prompt=prompt))["item"]["messages"][1]["adaptiveCards"][0][
-        "body"
-    ][0]["text"]
-    logger.info("Bot： ", str(result))
-
-    return result
-
-
-@app.route('/get_bing_answer', methods=['GET', 'POST'])
-def get_bing_answer():
-    post_data = request.get_json()
-    logger.info("post_data: ", str(post_data))
-    question = post_data["question"]
-    logger.info("question: ", str(question))
-    result = asyncio.run(handle(question))
-    logger.info(f"ANSWER: {result}")
-    return {
-        'status': 'success',
-        "answer": result
+        "answer": get_answer_from_model(prompt)
     }
 
 
@@ -104,15 +110,10 @@ if __name__ == '__main__':
         retention="30 days",
         rotation="500 MB"
     )
-    logger.info("System initializing...")
-    try:
-        # 使用bing的chatbot
-        bot = BingChatBot()
-    except Exception as e:
-        logger.error("错误： " + str(e))
-    try:
-        # 一组openAi的chatbot,用进行索引
-        chatBots = {str: ChatBot}
-    except Exception as e:
-        logger.error("错误： " + str(e))
-    app.run(host='0.0.0.0')
+    logger.info("System initializing.")
+
+    # Before officially using the model, initialize the model by giving it `init_prompt`
+    chat_init()
+
+    # Bind to all network interfaces
+    app.run(host='0.0.0.0', port=5000)

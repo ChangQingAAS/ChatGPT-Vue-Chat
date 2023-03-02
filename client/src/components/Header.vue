@@ -1,24 +1,14 @@
 <template>
     <section class="top">
         <img class="head" src="../assets/default.png"/>
-        <span class="name">BingChatGPT</span>
-        <span class="voice">
-            <i :class="vociceOpen?'fa-volume-up':'fa-volume-down'" aria-hidden="true" class="fa"
-               v-on:click="vociceOpen=vociceOpen?false:true"></i>
-        </span>
-        <!--fa fa-volume-off-->
+        <span class="name">gpt-3.5-turbo</span>
     </section>
 </template>
 
 <script>
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
-    name: 'heads',
-    data () {
-        return {
-            vociceOpen: true
-        }
-    }
+    name: 'Header',
 }
 </script>
 
@@ -46,12 +36,5 @@ export default {
     font-size: 18px;
     color: #444;
     margin-left: 10px;
-}
-
-.top .voice {
-    width: 30px;
-    height: 50px;
-    float: right;
-    text-align: center;
 }
 </style>
