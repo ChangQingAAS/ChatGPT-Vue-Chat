@@ -1,0 +1,10 @@
+openai==0.26.4
+asyncio==3.4.3
+websockets==10.4
+Flask==2.2.2
+Flask-Cors==3.0.10
+loguru==0.6.0
+requests==2.28.2
+tiktoken==0.2.0
+pydantic==1.10.4
+pyyaml==6.0
