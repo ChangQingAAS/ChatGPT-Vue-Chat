@@ -77,7 +77,7 @@ async def handle(prompt):
     result = (await bot.ask(prompt=prompt))["item"]["messages"][1]["adaptiveCards"][0][
         "body"
     ][0]["text"]
-    logger.info("Bot： ", result)
+    logger.info("Bot： ", str(result))
 
     return result
 
@@ -85,9 +85,9 @@ async def handle(prompt):
 @app.route('/get_bing_answer', methods=['GET', 'POST'])
 def get_bing_answer():
     post_data = request.get_json()
-    logger.info("post_data: ", post_data)
+    logger.info("post_data: ", str(post_data))
     question = post_data["question"]
-    logger.info("question: ", question)
+    logger.info("question: ", str(question))
     result = asyncio.run(handle(question))
     logger.info(f"ANSWER: {result}")
     return {
@@ -115,4 +115,4 @@ if __name__ == '__main__':
         chatBots = {str: ChatBot}
     except Exception as e:
         logger.error("错误： " + str(e))
-    app.run()
+    app.run(host='0.0.0.0')
