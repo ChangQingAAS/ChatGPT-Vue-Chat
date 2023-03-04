@@ -1,28 +1,29 @@
 <template>
     <div>
-        <section class="chatList">
-            <mt-loadmore>
-                <ul>
-                    <div v-for="(item, index) in records" :key="index">
-                        <li v-if="item.type == 1" class="chat-mine">
-                            <div class="chat-user"><img src="../assets/user.png"></div>
-                            <div class="time"><cite><i>{{ item.time }}</i>{{ item.name }}</cite></div>
-                            <div class="chat-text" style="white-space: pre-wrap;" v-text="item.content"></div>
-                            <!-- for new line： style="white-space: pre-wrap;"-->
-                        </li>
-                        <li v-if="item.type == 2">
-                            <div class="chat-user"><img src="../assets/default.png"></div>
-                            <div class="time"><cite>{{ item.name }}<i>{{ item.time }}</i></cite></div>
-                            <div class="chat-text" style="white-space: pre-wrap;" v-text="item.content"></div>
-                        </li>
-                    </div>
-                </ul>
-            </mt-loadmore>
+        <Header></Header>
+        <section ref="messagesRef" class="chatList">
+            <ul>
+                <div v-for="(message, index) in bots[currentBotIndex].messages" :key="index">
+                    <li v-if="message.sender ==='user' " class="chat-user">
+                        <div class="chat-img"><img src="assets/user.png"></div>
+                        <div class="time"><cite>{{ message.sender }}<i>{{ message.time }}</i></cite></div>
+                        <div class="chat-content" style="white-space: pre-wrap;" v-text="message.content"></div>
+                    </li>
+                    <li v-if="message.sender !== 'user'" class="chat-others">
+                        <div class="chat-img"><img :src="bots[currentBotIndex].avatar"></div>
+                        <div class="time"><cite>{{ message.sender }}<i>{{ message.time }}</i></cite></div>
+                        <div class="chat-content" style="white-space: pre-wrap;" v-text="message.content"></div>
+                    </li>
+                </div>
+            </ul>
         </section>
 
         <section class="foot">
-            <mt-field id="txtContent" v-model="content" class="con" placeholder="Please enter your prompt"></mt-field>
-            <span class="btn btn-send" v-on:click="sendMsg">Send</span>
+            <mt-field id="txtContent" v-model="content" class="con" placeholder="Please enter your prompt.">
+            </mt-field>
+            <span class="btn btn-send" v-on:click="sendMsg">
+                Send
+            </span>
         </section>
     </div>
 </template>
@@ -31,59 +32,76 @@
 import util from '../common/util'
 import { Toast } from 'mint-ui'
 import axios from 'axios'
+import Header from './Header.vue'
 
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'ChatList',
-    data() {
+    components: {
+        Header
+    },
+    data () {
         return {
             content: '',
             records: [], // chat record
         }
     },
+    computed: {
+        currentBotIndex () {
+            return this.$store.state.currentBotIndex
+        },
+        bots () {
+            return this.$store.state.bots
+        }
+    },
     methods: {
         sendMsg: function () {
-            const _this = this
-
+            // save user's message
             if (this.content == '') {
-                Toast('Please enter your prompt')
+                Toast('Please enter your prompt.')
                 return
             }
-
-            this.records.push({
-                type: 1,
-                time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
-                name: 'user',
-                content: this.content
+            this.$store.commit('SEND_MESSAGE', {
+                content: this.content,
+                sender: 'user',
+                receiver: this.bots[this.currentBotIndex].name,
+                time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss')
             })
 
-            // make a request
+            // Make the dialog box go to the bottom
+            // Maybe it is Duplicate
+            this.$nextTick(() => {
+                this.$refs.messagesRef.scrollTop = this.$refs.messagesRef.scrollHeight
+            })
+
+            // make a request to server
             const param = {
+                'bot': this.bots[this.currentBotIndex].name,
                 'prompt': this.content,
             }
             const path = `http://${window.location.hostname}:5000/get_answer`
             axios.post(path, param)
                 .then((res) => {
-                    _this.records.push({
-                        type: 2,
-                        time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
-                        name: 'gpt-3.5-turbo',
-                        content: res.data['answer']
+                    this.$store.commit('SEND_MESSAGE', {
+                        content: res.data['answer'],
+                        sender: this.bots[this.currentBotIndex].name,
+                        receiver: 'user',
+                        time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss')
                     })
                 })
                 .catch((error) => {
-                    _this.records.push({
-                        type: 2,
-                        time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss'),
-                        name: 'gpt-3.5-turbo',
-                        content: 'No Reply Received. Error: ' + error
+                    this.$store.commit('SEND_MESSAGE', {
+                        content: 'No Reply Received. Error: ' + error,
+                        sender: this.bots[this.currentBotIndex].name,
+                        receiver: 'user',
+                        time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss')
                     })
                 })
 
             this.content = ''
 
             this.scrollToBottom()
-            this.focusTxtContent()//聚焦输入框
+            this.focusTxtContent()
         },
 
         // focus the input box
@@ -109,51 +127,64 @@ export default {
 <style lang="css" scoped>
 .chatList {
     position: absolute;
-    top: 60px;
+    top: 48px;
     bottom: 48px;
-    left: 0px;
-    right: 0px;
+    left: 17%;
+    right: 0;
     overflow-y: scroll;
     overflow-x: hidden;
-    padding: 10px;
+    padding: 20px;
 }
 
 .chatList ul {
     min-height: 300px;
 }
 
-.chatList ul .chat-mine {
+.chatList ul .chat-user {
     text-align: right;
     padding-left: 0;
     padding-right: 60px;
 }
 
+
+.chatList ul .chat-others {
+    text-align: left;
+    padding-left: 60px;
+    padding-right: 0;
+}
+
 .chatList ul li {
     position: relative;
-    /*font-size: 0;*/
     margin-bottom: 10px;
     padding-left: 60px;
     min-height: 68px;
+    /*去掉li的默认小圆点*/
+    list-style-type: none;
 }
 
-.chat-mine .chat-user {
+.chat-user .chat-img {
     left: auto;
     right: 3px;
 }
 
-.chat-user {
+.chat-others .chat-img {
+    left: 3px;
+    right: auto;
+}
+
+.chat-img {
     position: absolute;
     left: 3px;
 }
 
-.chat-text,
-.chat-user {
+.chat-content,
+.chat-img {
     display: inline-block;
     vertical-align: top;
     /*font-size: 14px;*/
 }
 
-.chat-user img {
+.chat-img img {
     width: 40px;
     height: 40px;
     border-radius: 100%;
@@ -185,14 +216,21 @@ cite i {
     font-size: 12px;
 }
 
-.chat-mine .chat-text {
+.chat-user .chat-content {
     margin-left: 0;
     text-align: left;
     background-color: #33DF83;
     color: #fff;
 }
 
-.chat-text {
+.chat-others .chat-content {
+    margin-left: 0;
+    text-align: left;
+    background-color: #33DF83;
+    color: #fff;
+}
+
+.chat-content {
     position: relative;
     line-height: 22px;
     /*margin-top: 25px;*/
@@ -204,24 +242,24 @@ cite i {
     max-width: 462px \9;
 }
 
-.chat-text,
-.chat-user {
+.chat-content,
+.chat-img {
     display: inline-block;
     vertical-align: top;
     font-size: 14px;
 }
 
-.chat-text img {
+.chat-content img {
     max-width: 100%;
     vertical-align: middle;
 }
 
-.chat-user {
+.chat-img {
     position: absolute;
     left: 3px;
 }
 
-.chat-text:after {
+.chat-content:after {
     content: '';
     position: absolute;
     left: -10px;
@@ -234,18 +272,24 @@ cite i {
     border-width: 10px;
 }
 
-.chat-mine .chat-text:after {
+.chat-user .chat-content:after {
     left: auto;
     right: -10px;
     border-top-color: #33DF83;
 }
 
+.chat-others .chat-content:after {
+    left: -10px;
+    right: auto;
+    border-top-color: #33DF83;
+}
+
 .foot {
-    width: 100%;
+    width: 80%;
     min-height: 48px;
     position: fixed;
     bottom: 0px;
-    left: 0px;
+    right: 0px;
     background-color: #F8F8F8;
 }
 

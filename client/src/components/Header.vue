@@ -1,7 +1,7 @@
 <template>
     <section class="top">
-        <img class="head" src="../assets/default.png"/>
-        <span class="name">gpt-3.5-turbo</span>
+        <img :src="avatar">
+        <h2 class="name">{{ bots[currentBotIndex].name }}</h2>
     </section>
 </template>
 
@@ -9,23 +9,35 @@
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: 'Header',
+    computed: {
+        bots () {
+            return this.$store.state.bots
+        },
+        currentBotIndex () {
+            return this.$store.state.currentBotIndex
+        },
+        avatar () {
+            return  this.$store.state.bots[this.$store.state.currentBotIndex].avatar
+        }
+    }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .top {
-    height: 50px;
-    line-height: 50px;
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: 0;
     right: 0px;
-    background-color: #F8F8F8;
-    padding: 5px 10px;
+    left: 20%;
+
+    background-color: #33DF83;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
-.top .head {
+.top img {
     width: 50px;
     height: 50px;
     float: left;

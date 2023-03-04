@@ -5,10 +5,6 @@
 - Npm: 9.5.0
 - Vue2
 
-## TODO
-- The display fails when there are HTML tags in the `content` string of the chat record
-
-
 ## Project setup
 ```
 npm install
