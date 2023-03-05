@@ -108,7 +108,7 @@ const mutations = {
                 })
                 .catch((error) => {
                     this.commit('SEND_MESSAGE', {
-                        content: 'No Reply Received. Error: ' + error,
+                        content: `${bot.name} happened error: ${error}`,
                         sender: bot.name,
                         receiver: 'user',
                         time: util.formatDate.format(new Date(), 'yyyy-MM-dd hh:mm:ss')

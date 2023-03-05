@@ -69,7 +69,7 @@ npm run serve
 
 - [x] I want to make more chat interfaces, users can choose who to talk to in the left sidebar, such as a beautiful girl, a handsome man or Elon Musk, etc.
 - [ ] The display fails when there are HTML tags in the `content` string of the chat record
-- [ ] Beautify the sidebar
+- [x] Beautify the sidebar
 
 
 If you have better suggestions, please issue.
